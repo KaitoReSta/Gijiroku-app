@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI議事録ジェネレーター | WHALON</title>
+  <meta name="description" content="会議ログを貼るだけで、提出用議事録をAIが自動生成。決定事項・TODO・上司提出用まとめを瞬時に整理します。" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ══ HEADER ══════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">W</span>
+        <span class="logo-text">HALON</span>
+        <span class="logo-badge">無料デモ</span>
+      </div>
+      <div class="header-tag">AI 議事録ジェネレーター</div>
+    </div>
+  </header>
+
+  <!-- ══ SECURITY NOTICE ═════════════════════════════ -->
+  <div class="notice-bar">
+    <span class="notice-icon">⚠</span>
+    <span>機密情報・個人情報・社外秘情報は入力しないでください。入力内容はAI処理後に保持されません。</span>
+  </div>
+
+  <!-- ══ HERO ════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="hero-eyebrow">会議ログを貼るだけ</p>
+      <h1 class="hero-title">修正なしで提出できる<br />議事録を<em>即完成</em></h1>
+      <p class="hero-sub">
+        口語・断片的な発言をビジネス文語に変換。<br />
+        決定事項・TODO・上司提出用まとめまで、そのまま提出できる完成品に仕上げます。
+      </p>
+    </div>
+    <div class="hero-grid-bg" aria-hidden="true"></div>
+  </section>
+
+  <!-- ══ MAIN ════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- 利用回数バー -->
+    <div class="usage-bar">
+      <div class="usage-label-row">
+        <span class="usage-title">無料利用回数</span>
+        <div class="usage-right">
+          <span id="usage-left" class="usage-left">残り 3 回</span>
+          <span id="usage-count" class="usage-count">0 / 3 回使用</span>
+        </div>
+      </div>
+      <div class="usage-track">
+        <div id="usage-fill" class="usage-fill" style="width: 0%"></div>
+      </div>
+      <p class="usage-note">デモ版につき3回まで無料でお試しいただけます</p>
+    </div>
+
+    <!-- ══ STEP 01：入力セクション ══════════════════ -->
+    <section class="section" id="input-section">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2 class="section-title">会議ログを入力</h2>
+      </div>
+
+      <div class="input-hints">
+        <span class="hint-tag">📋 チャットログ</span>
+        <span class="hint-tag">🎤 文字起こし</span>
+        <span class="hint-tag">📝 メモ書き</span>
+        <span class="hint-sep">などをそのまま貼り付けてください</span>
+      </div>
+
+      <div class="input-wrap">
+        <textarea
+          id="meeting-log"
+          class="meeting-log"
+          placeholder="例）
+田中：本日はお集まりいただきありがとうございます。今月の売上について確認したいと思います。
+佐藤：先月比で15%増となりました。特に新規顧客からの受注が好調です。
+田中：素晴らしいですね。来月の目標はどうしましょうか？
+佐藤：20%増を目指したいです。そのためにも広告費を増やす必要があります。
+田中：わかりました。では予算案を来週までに佐藤さんに作成していただけますか？
+佐藤：承知しました。来週金曜日までに提出します。
+..."
+          rows="12"
+          maxlength="8000"
+        ></textarea>
+        <div class="char-count">
+          <span id="char-now">0</span> / 8,000 文字
+        </div>
+      </div>
+
+      <div class="generate-area">
+        <p class="generate-hint">Ctrl + Enter でも完成できます</p>
+        <button id="generate-btn" class="btn-generate" onclick="generateMinutes()">
+          <span class="btn-icon">✦</span>
+          <span class="btn-text">提出用議事録を完成させる</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ══ ローディング ══════════════════════════════ -->
+    <div id="loading" class="loading hidden">
+      <div class="loading-inner">
+        <div class="loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <p class="loading-text">提出用議事録を完成させています...</p>
+        <p class="loading-sub">口語をビジネス文語に変換し、提出できる状態に仕上げています</p>
+      </div>
+    </div>
+
+    <!-- ══ STEP 02：出力セクション ══════════════════ -->
+    <section class="section hidden" id="output-section">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2 class="section-title">完成した提出用議事録</h2>
+        <div class="output-actions">
+          <button class="btn-copy" id="copy-btn" onclick="copyMinutes()">
+            <span id="copy-icon">📋</span>
+            <span id="copy-text">コピー</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="output-wrap">
+        <div id="minutes-output" class="minutes-output"></div>
+      </div>
+
+      <div class="output-footer">
+        <button class="btn-reset" onclick="resetForm()">← 別の会議ログを入力する</button>
+      </div>
+    </section>
+
+    <!-- ══ 上限到達メッセージ ════════════════════════ -->
+    <div id="limit-overlay" class="limit-overlay hidden">
+      <div class="limit-icon">🔒</div>
+      <h3 class="limit-title">無料デモの利用回数に達しました</h3>
+      <p class="limit-text">
+        業務に合わせた議事録フォーマット調整や、<br />
+        社内用の専用版をご希望の場合はご相談ください。
+      </p>
+      <a href="#" data-consult-link class="btn-cta">
+        無料相談する →
+      </a>
+    </div>
+
+    <!-- ══ CTAバナー（3回到達後に表示） ════════════ -->
+    <div id="cta-banner" class="cta-banner hidden">
+      <div class="cta-inner">
+        <div class="cta-icon">💼</div>
+        <div class="cta-body">
+          <h3 class="cta-title">自社専用の議事録AIを導入しませんか？</h3>
+          <p class="cta-text">
+            WHALONでは、この議事録生成ツールをはじめ、<br />
+            貴社の業務フローに合わせたAI自動化を支援しています。
+          </p>
+          <ul class="cta-list">
+            <li>✓ 社内システム連携（Slack・Notion・Backlog等）</li>
+            <li>✓ 独自フォーマット・承認フローへの対応</li>
+            <li>✓ セキュリティ対応（社内完結・オンプレ対応）</li>
+          </ul>
+        </div>
+        <a href="#" data-consult-link class="btn-cta">
+          無料相談を申し込む →
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══ FOOTER ══════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-disclaimer">
+      本デモは検証用です。機密情報・個人情報・社外秘情報は入力しないでください。出力内容は必ず確認のうえご利用ください。
+    </div>
+    <div class="footer-inner">
+      <span class="footer-logo">WHALON</span>
+      <span class="footer-sep">|</span>
+      <span class="footer-text">中小企業のAI・自動化パートナー</span>
+      <span class="footer-sep">|</span>
+      <a href="mailto:info@whalon.jp" class="footer-link">お問い合わせ</a>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
